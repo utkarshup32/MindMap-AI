@@ -40,3 +40,11 @@
 .read-the-docs {
   color: #888;
 }
+.mindmap-output {
+  background-color: #1e1e1e;
+  color: #00ffcc;
+  padding: 1rem;
+  border-radius: 10px;
+  white-space: pre-wrap;
+  font-family: 'Courier New', monospace;
+}

@@ -68,7 +68,7 @@ function App() {
 
       {/* ✅ Output */}
       {mindMap && (
-        <div style={{ background: '#f4f4f4', padding: '1rem', borderRadius: '8px' }}>
+        <div style={{ background: '#f4f4f4', padding: '1rem', borderRadius: '8px',color: '#222'  }}>
           <h3>{mindMap.title}</h3>
           <ul>
             {mindMap.branches.map((branch, index) => (

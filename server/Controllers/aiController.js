@@ -1,36 +1,72 @@
-const OpenAI = require('openai');
 require('dotenv').config();
+const axios = require('axios');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
-exports.generateMindMap = async (req, res) => {
+const generateMindMap = async (req, res) => {
   const { topic } = req.body;
 
-  const prompt = `Generate a structured mind map on the topic: "${topic}".
-Return it in this JSON format:
+  if (!topic) {
+    return res.status(400).json({ error: 'Topic is required' });
+  }
+
+  try {
+    console.log("🔑 Loaded API key:", process.env.OPENROUTER_API_KEY);
+
+    const response = await axios.post(
+      'https://openrouter.ai/api/v1/chat/completions',
+      {
+        model: "openai/gpt-4o",
+        max_tokens: 1000,  
+        messages: [
+          {
+            role: 'user',
+            content: `Create a mind map on "${topic}" in this JSON format:
+
 {
-  "title": "Topic",
+  "title": "Main Topic",
   "branches": [
     {
       "label": "Main Branch",
-      "children": ["Subpoint 1", "Subpoint 2"]
+      "children": ["Subtopic 1", "Subtopic 2"]
     }
   ]
-}`;
+}`
+          }
+        ]
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'http://localhost:5173', // required
+          'X-Title': 'MindMap.AI'                  // required
+        }
+      }
+    );
 
-  try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: prompt }],
-    });
+    const content = response.data.choices[0].message.content;
+    const jsonStart = content.indexOf('{');
+    const jsonEnd = content.lastIndexOf('}');
+    const mindMap = JSON.parse(content.slice(jsonStart, jsonEnd + 1));
 
-    const content = completion.choices[0].message.content;
-    const mindMap = JSON.parse(content);
     res.json(mindMap);
   } catch (error) {
-    console.error('OpenAI Error:', error.message);
-    res.status(500).json({ error: error.message });
+  console.error('🛑 OpenRouter Error Message:', error.message);
+  if (error.response) {
+    console.error('🧾 Response Data:', error.response.data);
+    console.error('📎 Status Code:', error.response.status);
+    console.error('📨 Headers:', error.response.headers);
   }
+  res.status(500).json({ error: 'Mind map generation failed.' });
+}
+
+};
+
+const ping = (req, res) => {
+  res.json({ message: 'Backend + OpenRouter connected ✅' });
+};
+
+module.exports = {
+  generateMindMap,
+  ping
 };
