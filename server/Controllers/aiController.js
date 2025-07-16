@@ -1,10 +1,9 @@
-const { Configuration, OpenAIApi } = require('openai');
+const OpenAI = require('openai');
 require('dotenv').config();
 
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 exports.generateMindMap = async (req, res) => {
   const { topic } = req.body;
@@ -22,16 +21,16 @@ Return it in this JSON format:
 }`;
 
   try {
-    const completion = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }]
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: 'user', content: prompt }],
     });
 
-    const content = completion.data.choices[0].message.content;
+    const content = completion.choices[0].message.content;
     const mindMap = JSON.parse(content);
     res.json(mindMap);
   } catch (error) {
-    console.error("OpenAI Error:", error.message);
+    console.error('OpenAI Error:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
